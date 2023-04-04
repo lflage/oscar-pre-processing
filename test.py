@@ -63,6 +63,8 @@ for dirpath, dirname, files in os.walk(path):
         f_paths.append(os.path.join(dirpath,file))
 
 f_paths = [file for file in f_paths if file.endswith('.zst')]
+print(f_paths)
+
 
 for file in f_paths:
     print(file)
@@ -80,7 +82,7 @@ for file in f_paths:
             curre_doc.append(json.loads(line))
 
     # Reads the list of json files to a polars DataFrame
-    df = pl.DataFrame(curre_doc)
+    df = pl.DataFrame(curre_doc[:int(len(curre_doc)*.75)])
     # print(df.head())
 #     shape: (5, 3)
 # ┌───────────────────────────────────┬───────────────────────────────────┬───────────────────────────────────┐
@@ -99,9 +101,10 @@ for file in f_paths:
      'harmful_pp':list(map(return_pp, df[:,2])),
      'quality_warnings':list(map(return_qw, df[:,2]))})
 
-    harmful_df = df.filter(list(map(is_adult, df["quality_warnings"])))
+    # harmful_df = df.filter(list(map(is_adult, df["quality_warnings"])))
     if len(harmful_df) != 0:
         print('harmful')
+    del harmful_df
     
     print("filtering df")
     # Filtering the dataset with standard deviations
