@@ -5,6 +5,7 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 from tqdm import tqdm
 
+os.chdir('/netscratch/fonseca/oscar-pre-processing')
 
 ###############################################
 # Set seaborn figure size
@@ -54,7 +55,7 @@ def str_describe(dataframe,column:str)->str:
 ##############################################################
 
 
-path =  "./dataset/"
+path =  "/ds/text/oscar/oscar-2301"
 f_paths = []
 
 for dirpath, dirname, files in os.walk(path):
@@ -102,6 +103,7 @@ for file in f_paths:
     if len(harmful_df) != 0:
         print('harmful')
     
+    print("filtering df")
     # Filtering the dataset with standard deviations
     filtered_1std = std_filter(df,1)
     filtered_05std = std_filter(df,2)
