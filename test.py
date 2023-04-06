@@ -1,4 +1,4 @@
-import json, os, io
+import json, os, io, sys
 import polars as pl
 import zstandard as zstd
 import seaborn as sns
@@ -38,10 +38,13 @@ def is_adult(tags):
 def std_filter(dataframe,n_std):
     """Filter the dataframe according to the standard deviation of the harmful_pp
     """
-    dataframe['harmful_pp'].std()
-    n_std = 1.5
-    lower = dataframe['harmful_pp'].mean() - n_std*dataframe['harmful_pp'].std()
-    upper = dataframe['harmful_pp'].mean() + n_std*dataframe['harmful_pp'].std()
+    try:    
+        std = dataframe['harmful_pp'].std()
+        lower = dataframe['harmful_pp'].mean() - n_std*std
+        upper = dataframe['harmful_pp'].mean() + n_std*std
+    except TypeError:
+        print(dataframe['harmful_pp'])
+        sys.exit()
     return dataframe.filter((pl.col('harmful_pp') > lower) & (pl.col('harmful_pp') < upper))
 
 def str_describe(dataframe,column:str)->str:
@@ -52,6 +55,13 @@ def str_describe(dataframe,column:str)->str:
     """
     return '\n'.join([str(row[0]) + '    ' + str(row[1]) 
     for row in dataframe[column].describe().iter_rows()])
+
+def pp_violin_plot(df,file):
+    plt.figure()    
+    sns.violinplot(y = df['harmful_pp'])
+    plt.figtext(0.2, 0.7, str_describe(df,'harmful_pp'))
+    plt.savefig('./plots/'+ "-".join(file.split('/')[3:])+'.png')
+
 ##############################################################
 
 
@@ -63,7 +73,7 @@ for dirpath, dirname, files in os.walk(path):
         f_paths.append(os.path.join(dirpath,file))
 
 f_paths = [file for file in f_paths if file.endswith('.zst')]
-print(f_paths)
+
 
 
 for file in f_paths:
@@ -80,9 +90,11 @@ for file in f_paths:
         
         for line in tqdm(text_stream):
             curre_doc.append(json.loads(line))
+            if len(curre_doc) == 100000:
+                break
 
     # Reads the list of json files to a polars DataFrame
-    df = pl.DataFrame(curre_doc[:int(len(curre_doc)*.75)])
+    df = pl.DataFrame(curre_doc)
     # print(df.head())
 #     shape: (5, 3)
 # ┌───────────────────────────────────┬───────────────────────────────────┬───────────────────────────────────┐
@@ -102,31 +114,41 @@ for file in f_paths:
      'quality_warnings':list(map(return_qw, df[:,2]))})
 
     # harmful_df = df.filter(list(map(is_adult, df["quality_warnings"])))
-    if len(harmful_df) != 0:
-        print('harmful')
-    del harmful_df
-    
+    # if len(harmful_df) != 0:
+    #     print('harmful')
+    # del harmful_df
+
+    # Check if there exists perplexity measures
+    df = df.drop_nulls(subset='harmful_pp')
+    if df.is_empty():
+        print("No perplexity measure for {}".format(file))
+        continue
     print("filtering df")
     # Filtering the dataset with standard deviations
+    
     filtered_1std = std_filter(df,1)
     filtered_05std = std_filter(df,2)
 
     if not os.path.exists('./plots'):
         os.mkdir('./plots')
 
-    sns.violinplot(y = df['harmful_pp'])
-    plt.figtext(0.2, 0.7, str_describe(df,'harmful_pp'))
-    plt.savefig('./plots/'+ "-".join(file.split('/')[3:])+'.png')
-    plt.show()
+    pp_violin_plot(df,file)
+    # sns.violinplot(y = df['harmful_pp'])
+    # plt.figtext(0.2, 0.7, str_describe(df,'harmful_pp'))
+    # plt.savefig('./plots/'+ "-".join(file.split('/')[3:])+'.png')
+    # #plt.show()
 
-    sns.violinplot(y = filtered_1std['harmful_pp'])
-    plt.figtext(0.2, 0.7, str_describe(filtered_1std,'harmful_pp'))
-    plt.savefig('./plots/'+ "-".join(file.split('/')[3:])+'filter1.png')
-    plt.show()
+    pp_violin_plot(filtered_1std,file+"filter")
+    # sns.violinplot(y = filtered_1std['harmful_pp'])
+    # plt.figtext(0.2, 0.7, str_describe(filtered_1std,'harmful_pp'))
+    # plt.savefig('./plots/'+ "-".join(file.split('/')[3:])+'filter1.png')
+    # #plt.show()
 
-    sns.violinplot(y = filtered_05std['harmful_pp'])
-    plt.figtext(0.2, 0.7, str_describe(filtered_05std,'harmful_pp'))
-    plt.savefig('./plots/'+ "-".join(file.split('/')[3:])+'filter05.png')
-    plt.show()
+    pp_violin_plot(filtered_05std,file+"filter05")
+    # sns.violinplot(y = filtered_05std['harmful_pp'])
+    # plt.figtext(0.2, 0.7, str_describe(filtered_05std,'harmful_pp'))
+    # plt.savefig('./plots/'+ "-".join(file.split('/')[3:])+'filter05.png')
+    # #plt.show()
 
+    plt.close('all')
 
