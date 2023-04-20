@@ -51,7 +51,7 @@ for origin, target in tqdm(zip(f_paths,t_paths)):
                     writer_stream.write(line)
                     writer.flush(zstd.FLUSH_FRAME)
                     writer_stream.flush()
-            except ValueError:
+            except TypeError:
                 pass
 
 
