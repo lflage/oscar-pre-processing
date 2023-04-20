@@ -2,6 +2,11 @@ import io, os, json
 import zstandard as zstd
 from pprint import pprint
 
+def sanity_check(origin,target):
+    o_file = origin.split('/')[-1]
+    t_file = target.split('/')[-1]
+    assert o_file == t_file
+
 ini_dir = os.getcwd()
 folder_path = "/ds/text/oscar/oscar-2301/"
 target_folder = "./dataset/adult/"
@@ -27,6 +32,9 @@ for path in t_paths:
     if not os.path.isdir(dir_name):
         os.mkdir(dir_name)
 
+for origin, target in zip(f_paths,t_paths):
+    sanity_check(origin,target)
+    
 
 
 #pprint(f_paths)
