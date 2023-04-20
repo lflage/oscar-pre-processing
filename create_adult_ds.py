@@ -10,7 +10,7 @@ def sanity_check(origin,target):
 
 ini_dir = os.getcwd()
 folder_path = "/ds/text/oscar/oscar-2301/"
-target_folder = "./dataset/adult/"
+target_folder = "./adult-oscar/"
 
 if not os.path.isdir(target_folder):
     os.mkdir(target_folder)
