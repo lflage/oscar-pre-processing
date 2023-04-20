@@ -2,17 +2,34 @@ import io, os, json
 import zstandard as zstd
 from pprint import pprint
 
+ini_dir = os.getcwd()
 folder_path = "/ds/text/oscar/oscar-2301/"
+target_folder = "./dataset/adult/"
+
+if not os.path.isdir(target_folder):
+    os.mkdir(target_folder)
 
 f_paths = []
+t_paths = []
 for dirpath, dirname, files in os.walk(folder_path):
     for file in files:
-        f_paths.append(os.path.join(dirpath,file))
-
+        f_path = os.path.join(dirpath,file)
+        f_paths.append(f_path)
+        t_paths.append(os.path.relpath(f_path, start=folder_path))
+        
+        
 f_paths = [file for file in f_paths if file.endswith('.zst')]
+t_paths = [file for file in t_paths if file.endswith('.zst')]
 
-f_paths = list(sorted(f_paths))
-pprint(f_paths)
+os.chdir(target_folder)
+for path in t_paths:
+    dir_name = path.split('/')[0]
+    if not os.path.isdir(dir_name):
+        os.mkdir(dir_name)
+
+
+
+#pprint(f_paths)
 # If read from compressed file
 
 # path = "./dataset/pt_meta/pt_meta_part_64.jsonl.zst"
