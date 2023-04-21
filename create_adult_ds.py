@@ -32,7 +32,7 @@ def create_adult_zstd(paths_tuple):
             except TypeError:
                 pass
             except json.JSONDecodeError:
-                print("could not decode{}".format(ofh))    3
+                print("could not decode{}".format(ofh))
 
 
 ini_dir = os.getcwd()
