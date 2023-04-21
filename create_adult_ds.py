@@ -35,6 +35,8 @@ for path in t_paths:
 
 for origin, target in tqdm(zip(f_paths,t_paths)):
     sanity_check(origin,target)
+    if os.path.isfile(target):
+        continue
     with open(origin, 'rb') as ifh, open(target, "wb") as ofh:
         dctx = zstd.ZstdDecompressor()
         stream_reader = dctx.stream_reader(ifh)
@@ -53,6 +55,8 @@ for origin, target in tqdm(zip(f_paths,t_paths)):
                     writer_stream.flush()
             except TypeError:
                 pass
+            except json.JSONDecodeError:
+                print("could not decode{}".format(ofh))
 
 
 #pprint(f_paths)
