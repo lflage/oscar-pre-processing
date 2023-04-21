@@ -1,4 +1,4 @@
-import io, os, json
+import io, os, json, multiprocessing
 import zstandard as zstd
 from tqdm import tqdm
 from pprint import pprint
@@ -7,6 +7,33 @@ def sanity_check(origin,target):
     o_file = origin.split('/')[-1]
     t_file = target.split('/')[-1]
     assert o_file == t_file
+
+def create_adult_zstd(paths_tuple):
+    origin,target = paths_tuple
+    sanity_check(origin,target)
+    if os.path.isfile(target):
+        return
+    with open(origin, 'rb') as ifh, open(target, "wb") as ofh:
+        dctx = zstd.ZstdDecompressor()
+        stream_reader = dctx.stream_reader(ifh)
+        text_stream = io.TextIOWrapper(stream_reader, encoding='utf-8')
+
+        ctx = zstd.ZstdCompressor()
+        writer = ctx.stream_writer(ofh)
+        writer_stream = io.TextIOWrapper(writer, encoding='utf-8')
+
+        for line in tqdm(text_stream):
+            json_doc = json.loads(line)
+            try:
+                if 'adult' in json_doc['metadata']['categories']:
+                    writer_stream.write(line)
+                    writer.flush(zstd.FLUSH_FRAME)
+                    writer_stream.flush()
+            except TypeError:
+                pass
+            except json.JSONDecodeError:
+                print("could not decode{}".format(ofh))    3
+
 
 ini_dir = os.getcwd()
 folder_path = "/ds/text/oscar/oscar-2301/"
@@ -33,30 +60,34 @@ for path in t_paths:
     if not os.path.isdir(dir_name):
         os.mkdir(dir_name)
 
-for origin, target in tqdm(zip(f_paths,t_paths)):
-    sanity_check(origin,target)
-    if os.path.isfile(target):
-        continue
-    with open(origin, 'rb') as ifh, open(target, "wb") as ofh:
-        dctx = zstd.ZstdDecompressor()
-        stream_reader = dctx.stream_reader(ifh)
-        text_stream = io.TextIOWrapper(stream_reader, encoding='utf-8')
+pool = multiprocessing.Pool()
+pool = multiprocessing.Pool()
+pool.map(create_adult_zstd,zip(f_paths,t_paths))
 
-        ctx = zstd.ZstdCompressor()
-        writer = ctx.stream_writer(ofh)
-        writer_stream = io.TextIOWrapper(writer, encoding='utf-8')
+# for origin, target in tqdm(zip(f_paths,t_paths)):
+#     sanity_check(origin,target)
+#     if os.path.isfile(target):
+#         continue
+#     with open(origin, 'rb') as ifh, open(target, "wb") as ofh:
+#         dctx = zstd.ZstdDecompressor()
+#         stream_reader = dctx.stream_reader(ifh)
+#         text_stream = io.TextIOWrapper(stream_reader, encoding='utf-8')
 
-        for line in tqdm(text_stream):
-            json_doc = json.loads(line)
-            try:
-                if 'adult' in json_doc['metadata']['categories']:
-                    writer_stream.write(line)
-                    writer.flush(zstd.FLUSH_FRAME)
-                    writer_stream.flush()
-            except TypeError:
-                pass
-            except json.JSONDecodeError:
-                print("could not decode{}".format(ofh))
+#         ctx = zstd.ZstdCompressor()
+#         writer = ctx.stream_writer(ofh)
+#         writer_stream = io.TextIOWrapper(writer, encoding='utf-8')
+
+#         for line in tqdm(text_stream):
+#             json_doc = json.loads(line)
+#             try:
+#                 if 'adult' in json_doc['metadata']['categories']:
+#                     writer_stream.write(line)
+#                     writer.flush(zstd.FLUSH_FRAME)
+#                     writer_stream.flush()
+#             except TypeError:
+#                 pass
+#             except json.JSONDecodeError:
+#                 print("could not decode{}".format(ofh))
 
 
 #pprint(f_paths)
