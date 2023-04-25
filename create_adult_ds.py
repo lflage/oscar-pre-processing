@@ -1,7 +1,9 @@
-import io, os, json, multiprocessing
+import io, os, json, multiprocessing, logging
 import zstandard as zstd
 from tqdm import tqdm
 from pprint import pprint
+
+logging.basicConfig(level=logging.DEBUG,filename='adulg.log')
 
 def sanity_check(origin,target):
     o_file = origin.split('/')[-1]
@@ -12,6 +14,7 @@ def create_adult_zstd(paths_tuple):
     origin,target = paths_tuple
     sanity_check(origin,target)
     if os.path.isfile(target):
+        logging.info("File done: {}".format(ifh))
         return
     with open(origin, 'rb') as ifh, open(target, "wb") as ofh:
         dctx = zstd.ZstdDecompressor()
@@ -32,7 +35,7 @@ def create_adult_zstd(paths_tuple):
             except TypeError:
                 pass
             except json.JSONDecodeError:
-                print("could not decode{}".format(ofh))
+                logging.warning("Error decoding file: {}".format(ifh))
 
 
 ini_dir = os.getcwd()
@@ -52,7 +55,7 @@ for dirpath, dirname, files in os.walk(folder_path):
         
         
 f_paths = [file for file in f_paths if file.endswith('.zst')]
-t_paths = [file for file in t_paths if file.endswith('.zst')]
+t_paths = [file for file in t_paths if file.endswith('.zst')] 
 
 os.chdir(target_folder)
 for path in t_paths:
