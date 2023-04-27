@@ -3,7 +3,7 @@ import zstandard as zstd
 from tqdm import tqdm
 from pprint import pprint
 
-logging.basicConfig(level=logging.DEBUG,filename='adulg.log')
+logging.basicConfig(level=logging.DEBUG,filename='adult.log')
 
 def sanity_check(origin,target):
     o_file = origin.split('/')[-1]
@@ -14,9 +14,10 @@ def create_adult_zstd(paths_tuple):
     origin,target = paths_tuple
     sanity_check(origin,target)
     if os.path.isfile(target):
-        logging.info("File done: {}".format(ifh))
+        logging.info("File done: {}".format(target))
         return
     with open(origin, 'rb') as ifh, open(target, "wb") as ofh:
+        print(ifh)
         dctx = zstd.ZstdDecompressor()
         stream_reader = dctx.stream_reader(ifh)
         text_stream = io.TextIOWrapper(stream_reader, encoding='utf-8')
@@ -34,38 +35,42 @@ def create_adult_zstd(paths_tuple):
                     writer_stream.flush()
             except TypeError:
                 pass
-            except json.JSONDecodeError:
+            except json.decoder.JSONDecodeError:
                 logging.warning("Error decoding file: {}".format(ifh))
 
+if __name__ == "__main__":
 
-ini_dir = os.getcwd()
-folder_path = "/ds/text/oscar/oscar-2301/"
-target_folder = "./adult-oscar/"
+    ini_dir = os.getcwd()
+    folder_path = "/ds/text/oscar/oscar-2301/"
+    target_folder = "./adult-oscar/"
 
-if not os.path.isdir(target_folder):
-    os.mkdir(target_folder)
+    if not os.path.isdir(target_folder):
+        os.mkdir(target_folder)
 
-f_paths = []
-t_paths = []
-for dirpath, dirname, files in os.walk(folder_path):
-    for file in files:
-        f_path = os.path.join(dirpath,file)
-        f_paths.append(f_path)
-        t_paths.append(os.path.relpath(f_path, start=folder_path))
-        
-        
-f_paths = [file for file in f_paths if file.endswith('.zst')]
-t_paths = [file for file in t_paths if file.endswith('.zst')] 
+    f_paths = []
+    t_paths = []
+    for dirpath, dirname, files in os.walk(folder_path):
+        for file in files:
+            f_path = os.path.join(dirpath,file)
+            f_paths.append(f_path)
+            t_paths.append(os.path.relpath(f_path, start=folder_path))
+            
+            
+    f_paths = [file for file in f_paths if file.endswith('.zst')]
+    t_paths = [file for file in t_paths if file.endswith('.zst')] 
 
-os.chdir(target_folder)
-for path in t_paths:
-    dir_name = path.split('/')[0]
-    if not os.path.isdir(dir_name):
-        os.mkdir(dir_name)
+    os.chdir(target_folder)
+    for path in t_paths:
+        dir_name = path.split('/')[0]
+        if not os.path.isdir(dir_name):
+            os.mkdir(dir_name)
 
-pool = multiprocessing.Pool()
-pool = multiprocessing.Pool()
-pool.map(create_adult_zstd,zip(f_paths,t_paths))
+    # pool = multiprocessing.Pool()
+    # pool = multiprocessing.Pool()
+    # pool.map(create_adult_zstd,zip(f_paths,t_paths))
+
+    for pair in zip(f_paths,t_paths):
+        create_adult_zstd(pair)
 
 # for origin, target in tqdm(zip(f_paths,t_paths)):
 #     sanity_check(origin,target)
