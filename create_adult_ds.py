@@ -64,47 +64,6 @@ if __name__ == "__main__":
         if not os.path.isdir(dir_name):
             os.mkdir(dir_name)
 
-    # pool = multiprocessing.Pool()
-    # pool = multiprocessing.Pool()
-    # pool.map(create_adult_zstd,zip(f_paths,t_paths))
-
-    for pair in zip(f_paths,t_paths):
-        create_adult_zstd(pair)
-
-# for origin, target in tqdm(zip(f_paths,t_paths)):
-#     sanity_check(origin,target)
-#     if os.path.isfile(target):
-#         continue
-#     with open(origin, 'rb') as ifh, open(target, "wb") as ofh:
-#         dctx = zstd.ZstdDecompressor()
-#         stream_reader = dctx.stream_reader(ifh)
-#         text_stream = io.TextIOWrapper(stream_reader, encoding='utf-8')
-
-#         ctx = zstd.ZstdCompressor()
-#         writer = ctx.stream_writer(ofh)
-#         writer_stream = io.TextIOWrapper(writer, encoding='utf-8')
-
-#         for line in tqdm(text_stream):
-#             json_doc = json.loads(line)
-#             try:
-#                 if 'adult' in json_doc['metadata']['categories']:
-#                     writer_stream.write(line)
-#                     writer.flush(zstd.FLUSH_FRAME)
-#                     writer_stream.flush()
-#             except TypeError:
-#                 pass
-#             except json.JSONDecodeError:
-#                 print("could not decode{}".format(ofh))
-
-
-#pprint(f_paths)
-# If read from compressed file
-
-# path = "./dataset/pt_meta/pt_meta_part_64.jsonl.zst"
-# output_path = "/netscratch/fonseca/oscar-pre-processing/pt_meta_part_1_adult.jsonl.zst"
-
-# curre_doc = []
-
-#         # curre_doc.append(json_doc)
-#         # if len(curre_doc) == 10:
-#         #     break
+    pool = multiprocessing.Pool()
+    pool = multiprocessing.Pool()
+    pool.map(create_adult_zstd,zip(f_paths,t_paths))
