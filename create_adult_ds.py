@@ -1,4 +1,4 @@
-import io, os, json, multiprocessing, logging
+import io, os, orjson, multiprocessing, logging
 import zstandard as zstd
 from tqdm import tqdm
 from pprint import pprint
@@ -13,26 +13,24 @@ def sanity_check(origin,target):
 def create_adult_zstd(paths_tuple):
     origin,target = paths_tuple
     sanity_check(origin,target)
+    target = target.split('.zst')[0]
+    
     if os.path.isfile(target):
         logging.info("File done: {}".format(target))
         return
-    with open(origin, 'rb') as ifh, open(target, "wb") as ofh:
+    with open(origin, 'rb') as ifh, open(target, "w") as ofh:
         print(ifh)
         dctx = zstd.ZstdDecompressor()
         stream_reader = dctx.stream_reader(ifh)
         text_stream = io.TextIOWrapper(stream_reader, encoding='utf-8')
 
-        ctx = zstd.ZstdCompressor()
-        writer = ctx.stream_writer(ofh)
-        writer_stream = io.TextIOWrapper(writer, encoding='utf-8')
+        
 
         for line in tqdm(text_stream):
-            json_doc = json.loads(line)
+            json_doc = orjson.loads(line)
             try:
                 if 'adult' in json_doc['metadata']['categories']:
-                    writer_stream.write(line)
-                    writer.flush(zstd.FLUSH_FRAME)
-                    writer_stream.flush()
+                    ofh.write(line+'\n')
             except TypeError:
                 pass
             except json.decoder.JSONDecodeError:
@@ -42,7 +40,7 @@ if __name__ == "__main__":
 
     ini_dir = os.getcwd()
     folder_path = "/ds/text/oscar/oscar-2301/"
-    target_folder = "./adult-oscar/"
+    target_folder = "/netscratch/fonseca/oscar-pre-processing/adult-oscar/"
 
     if not os.path.isdir(target_folder):
         os.mkdir(target_folder)
@@ -58,6 +56,7 @@ if __name__ == "__main__":
             
     f_paths = [file for file in f_paths if file.endswith('.zst')]
     t_paths = [file for file in t_paths if file.endswith('.zst')] 
+
 
     os.chdir(target_folder)
     for path in t_paths:
