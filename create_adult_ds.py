@@ -25,14 +25,18 @@ def create_adult_zstd(paths_tuple):
         text_stream = io.TextIOWrapper(stream_reader, encoding='utf-8')
 
         for line in tqdm(text_stream):
-            json_doc = orjson.loads(line)
+            try:
+                json_doc = orjson.loads(line)
+            except orjson.JSONDecodeError:
+                logging.warning("Error decoding file: {}".format(ifh))
+                continue
+
             try:
                 if 'adult' in json_doc['metadata']['categories']:
                     ofh.write(line+'\n')
             except TypeError:
                 pass
-            except orjson.JSONDecodeError:
-                logging.warning("Error decoding file: {}".format(ifh))
+            
 
 if __name__ == "__main__":
  
