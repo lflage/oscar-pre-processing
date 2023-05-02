@@ -63,5 +63,4 @@ if __name__ == "__main__":
             os.mkdir(dir_name)
 
     pool = multiprocessing.Pool()
-    pool = multiprocessing.Pool()
     pool.map(create_adult_zstd,zip(f_paths,t_paths))
