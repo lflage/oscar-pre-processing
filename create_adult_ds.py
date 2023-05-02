@@ -24,8 +24,6 @@ def create_adult_zstd(paths_tuple):
         stream_reader = dctx.stream_reader(ifh)
         text_stream = io.TextIOWrapper(stream_reader, encoding='utf-8')
 
-        
-
         for line in tqdm(text_stream):
             json_doc = orjson.loads(line)
             try:
@@ -33,11 +31,11 @@ def create_adult_zstd(paths_tuple):
                     ofh.write(line+'\n')
             except TypeError:
                 pass
-            except json.decoder.JSONDecodeError:
+            except orjson.JSONDecodeError:
                 logging.warning("Error decoding file: {}".format(ifh))
 
 if __name__ == "__main__":
-
+ 
     ini_dir = os.getcwd()
     folder_path = "/ds/text/oscar/oscar-2301/"
     target_folder = "/netscratch/fonseca/oscar-pre-processing/adult-oscar/"
