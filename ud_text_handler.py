@@ -2,7 +2,10 @@ import os, shutil
 from pprint import pprint
 
 # Ordem:
-# - 
+# TODO:
+#       - turn into function
+#       - filter out readme and license
+#       - concatenate stuff
 # Select languages
 languages = [('English','en'),('Swedish','sv'), ('Russian','ru'),('French','fr'),
         ('Japanese','ja'),('Portuguese','pt'),('German','de'),('Spanish','es')]
@@ -27,8 +30,10 @@ for dirpath, dirname, files in os.walk(ud_i_path):
 
             for language in languages:
                 if language[0] in n_path:
-                    os.makedirs(os.path.dirname(ud_o_path+n_path),exist_ok=True)
+                    folder = os.path.dirname(ud_o_path+n_path)
+                    os.makedirs(folder,exist_ok=True)
                     shutil.copy(ud_i_path+n_path, ud_o_path+n_path)
+                    dir_paths.extend([folder])
                 else:
                     continue
         else:
@@ -36,31 +41,32 @@ for dirpath, dirname, files in os.walk(ud_i_path):
 
 
 
-# os.chdir(ud_o_path)
-# for folder in dir_paths:
-#     if not os.path.exists(folder):
-#         os.mkdir(folder)
-# os.chdir(init_dir)
+print("-----------------------")
+for dir in dir_paths:
+    text = ""
+    for root,dirname, files in os.walk(dir):
+        files = [file for file in files if "README" not in file]
+        files = [file for file in files if "LICENSE" not in file]
+        files = [file for file in files if ".py" not in file]
+        for file in files:
+            with open(dir+'/'+file, "r") as dtt:
+                text += dtt.read()
+    with open(dir+"/"+ dir.split('/')[-1]+ "-concat.txt", "a") as concat:
+        concat.write(text)
 
-# for file in f_paths:
-    
+
+
+# dirs = []
 # for dirpath, dirname, files in os.walk(ud_o_path):
-#     for file in files:
-#         f_path = os.path.join(dirpath, file)
-#         f_paths.append(f_path)
-#     for dirs in dirname:
-#         if dirs == 'merge':
-#             continue
-#         dir_paths.append(dirs)
+#     if dirname:
+#         dirs.extend(dirname)
+
+# for dir in dirs:
+#     for 
+    # for file in files:
+    #     n_path = os.path.join(dirpath,file)
 
 
-# f_paths = [path for path in f_paths if path.endswith('.txt')]
-# f_paths = [path for path in f_paths if 'README' not in path]
-# f_paths = [path for path in f_paths if 'LICENSE' not in path]
-
-# f_paths = list(sorted(f_paths))
-# # pprint(f_paths)
-# #print(len(f_paths))
 # pprint(f_paths)
 # for dirname in dir_paths:
 #     text = ""
