@@ -1,10 +1,3 @@
-# TODO:
-    # - Confirm what I have to do:
-    #     - Which perplexities I need (line by line and document)
-    #     - Find formula and code
-    # - Figure out a data structures:
-    #     - Dataframe?
-
 import kenlm, os, json
 import pandas as pd
 from tqdm import tqdm
@@ -89,25 +82,4 @@ for language in tqdm(languages):
        json.dump(l_dict,oj)
 print(l_dict)
 
-#to_csv = {"doc_id":[],"doc_lines":[],"line_pp":[],"line_len":[],"line_score":[]}
-#for path in tqdm(f_paths):
-#    with open(path, 'r') as f:
-#        for line in f.readlines():
-#            line_score = model.score(line)
-#            line_len = len(line.split())
-#            if line_len == 0:
-#                continue
-#            to_csv["doc_id"].append(path)
-#            to_csv["doc_lines"].append(line)
-#            to_csv["line_score"].append(line_score)
-#            to_csv["line_len"].append(line_len)
-#            pp_score = round(pp(model.score(line), line_len))
-#            to_csv['line_pp'].append(pp_score)
-#            # try:
-#            #     pp_score = round(pp(model.score(line), line_len))
-#            #     to_csv['line_pp'].append(pp_score)
-#            # except ZeroDivisionError as e:
-#            #     logging.exception("\nline:{}\nline_len:{}\n".format(line,line_len))
-            
-# with open('./english_ud_pp.json','w') as oj:
-#    json.dump(to_csv,oj)
+
