@@ -8,9 +8,7 @@
 import kenlm, os, json
 import pandas as pd
 from tqdm import tqdm
-import logging
 
-logging.basicConfig(level=logging.DEBUG,filename='pp.log')
 
 languages = [('English','en'),('Swedish','sv'), ('Russian','ru'),('French','fr'),
         ('Japanese','ja'),('Portuguese','pt'),('German','de'),('Spanish','es')]    
