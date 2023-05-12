@@ -53,30 +53,38 @@ def do_doc(language,doc_path) -> tuple:
 
     return (round(pp(doc_log_score, doc_length)))
 
-print('reading model')
-
 f_paths = []
+# Switching to repo base folder, due to slurm mount structure
 os.chdir('./oscar-pre-processing')
+# Creating out folder
 if not os.path.isdir(out_path):
     os.mkdir(out_path)
 
+# reading paths from origin folder
 for root, dirnames, files in os.walk("./ud_tst_1"):
     for file in files:
         f_paths.append(os.path.join(root,file))
+# Only get the concatenated files
 f_paths = [file for file in f_paths if "concat.txt" in file]
 
+# Iterate over all languages
 for language in tqdm(languages):
     l_paths = [file for file in f_paths if language[0] in file]
+    # Create a dict with doc name and its perplexity score
     l_dict = {"doc_id":[], "pp_score":[]}
     for path in l_paths:
+        # Get perplexity for each line in doc
         to_lines = do_lines(language[0],path)
+        # Save perplexity dict into json
         with open(out_path+language[1]+'_pp_lines.json', "w") as oj:
             json.dump(to_lines,oj)
         
+        # Get perplexity for whole doc
         doc_pp = do_doc(language[0],path)
         l_dict['doc_id'].append(path)
         l_dict['pp_score'].append(doc_pp)
     doc_out_path = out_path+language[1]+'_pp_docs.json'
+    # Saves perplexity for doc into json
     print("Writing doc pp: {}".format(doc_out_path))
     with open(doc_out_path, "a") as oj:
        json.dump(l_dict,oj)
