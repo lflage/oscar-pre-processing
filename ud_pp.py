@@ -3,9 +3,8 @@ import pandas as pd
 from tqdm import tqdm
 
 
-languages = [('English','en'),('Swedish','sv'), ('Russian','ru'),('French','fr'),
+lang_dict = dict[('English','en'),('Swedish','sv'), ('Russian','ru'),('French','fr'),
         ('Japanese','ja'),('Portuguese','pt'),('German','de'),('Spanish','es')]    
-lang_dict = dict(languages)
 
 kenlms_path = "/ds/text/oscar/oscar-kenlms/" #+'en'+'.binary'
 
