@@ -1,6 +1,9 @@
 import os, shutil
 from pprint import pprint
+from utils import *
 
+
+print('in file')
 # Ordem:
 # TODO:
 #       - turn into function
@@ -12,7 +15,7 @@ languages = [('English','en'),('Swedish','sv'), ('Russian','ru'),('French','fr')
 
 init_dir = os.getcwd()
 # Output path
-ud_o_path = './ud_tst_1/'
+ud_o_path = './new_ud_tst/'
 # input path
 ud_i_path = '/netscratch/fonseca/ud/ud-treebanks-v2.11/'
 
@@ -24,18 +27,22 @@ dir_paths = []
 
 for dirpath, dirname, files in os.walk(ud_i_path):
     for file in files:
-        path = os.path.join(dirpath,file)
-        if ".txt" in path:
+        if ".txt" in file:
+            path = os.path.join(dirpath,file)
             n_path = "/".join(path.split('/')[-2:])
 
-            for language in languages:
-                if language[0] in n_path:
-                    folder = os.path.dirname(ud_o_path+n_path)
-                    os.makedirs(folder,exist_ok=True)
-                    shutil.copy(ud_i_path+n_path, ud_o_path+n_path)
-                    dir_paths.extend([folder])
-                else:
-                    continue
+            try:
+                for lg, lang in lang_dict.items():
+                    if lang in n_path:
+                        folder = os.path.dirname(ud_o_path+n_path)
+                        os.makedirs(folder,exist_ok=True)
+                        shutil.copy(ud_i_path+n_path, ud_o_path+n_path)
+                        dir_paths.extend([folder])
+                    else:
+                        continue
+            except FileNotFoundError as e:
+                print(path)
+                print(e)
         else:
             continue
 
