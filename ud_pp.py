@@ -2,13 +2,14 @@ import kenlm, os, json
 import pandas as pd
 from tqdm import tqdm
 
+from utils import lang_dict
 
-lang_dict = dict[('English','en'),('Swedish','sv'), ('Russian','ru'),('French','fr'),
-        ('Japanese','ja'),('Portuguese','pt'),('German','de'),('Spanish','es')]    
+#lang_dict = dict[('English','en'),('Swedish','sv'), ('Russian','ru'),('French','fr'),
+#        ('Japanese','ja'),('Portuguese','pt'),('German','de'),('Spanish','es')]    
 
 kenlms_path = "/ds/text/oscar/oscar-kenlms/" #+'en'+'.binary'
 
-out_path = "./pps/"
+out_path = "./pps_2/"
 
 
 def pp(log_score:float, length:int):
@@ -56,37 +57,48 @@ if __name__=="__main__":
 
     f_paths = []
 # Switching to repo base folder, due to slurm mount structure
-    os.chdir('./oscar-pre-processing')
+    #os.chdir('./oscar-pre-processing')
 # Creating out folder
     if not os.path.isdir(out_path):
         os.mkdir(out_path)
 
     # reading paths from origin folder
-    for root, dirnames, files in os.walk("./ud_tst_1"):
+    for root, dirnames, files in os.walk("./new_"):
         for file in files:
             f_paths.append(os.path.join(root,file))
     # Only get the concatenated files
     f_paths = [file for file in f_paths if "concat.txt" in file]
 
+    europe_languages = ["Dutch", "French", "German", "Italian", "Danish", "English",
+"Greek", "Portuguese", "Spanish", "Finnish", "Swedish", "Czech", "Estonian",
+"Hungarian", "Latvian", "Lithuanian", "Maltese", "Polish", "Slovak", "Slovenian",
+"Bulgarian", "Irish", "Romanian", "Croatian"]
+
+    lg_dict = {k:v for k,v in lang_dict.items() if k in europe_languages}
+
+
     # Iterate over all languages
-    for language in tqdm(languages):
-        l_paths = [file for file in f_paths if language[0] in file]
+    for language, lg in tqdm(lg_dict.items()):
+        l_paths = [file for file in f_paths if language in file]
         # Create a dict with doc name and its perplexity score
         l_dict = {"doc_id":[], "pp_score":[]}
         for path in l_paths:
             # Get perplexity for each line in doc
-            to_lines = do_lines(language[0],path)
+            try:
+                to_lines = do_lines(language,path)
+            except OSError:
+                print("failed to open{}".format(language))
+                continue
             # Save perplexity dict into json
-            with open(out_path+language[1]+'_pp_lines.json', "a") as oj:
+            with open(out_path+lg+'_pp_lines.json', "a") as oj:
                 json.dump(to_lines,oj)
 
             # Get perplexity for whole doc
-            doc_pp = do_doc(language[0],path)
+            doc_pp = do_doc(language,path)
             l_dict['doc_id'].append(path)
             l_dict['pp_score'].append(doc_pp)
-        doc_out_path = out_path+language[1]+'_pp_docs.json'
+        doc_out_path = out_path+lg+'_pp_docs.json'
         # Saves perplexity for doc into json
         print("Writing doc pp: {}".format(doc_out_path))
         with open(doc_out_path, "a") as oj:
            json.dump(l_dict,oj)
-    print(l_dict)
