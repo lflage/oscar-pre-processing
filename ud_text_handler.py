@@ -1,6 +1,7 @@
 import os, shutil
 from pprint import pprint
-from utils import *
+from utils import lang_dict
+from tqdm import tqdm
 
 
 print('in file')
@@ -15,7 +16,7 @@ languages = [('English','en'),('Swedish','sv'), ('Russian','ru'),('French','fr')
 
 init_dir = os.getcwd()
 # Output path
-ud_o_path = './new_ud_tst/'
+ud_o_path = './new_/'
 # input path
 ud_i_path = '/netscratch/fonseca/ud/ud-treebanks-v2.11/'
 
@@ -49,16 +50,26 @@ for dirpath, dirname, files in os.walk(ud_i_path):
 
 
 print("-----------------------")
-for dir in dir_paths:
+if dir_paths:
+    print('exists')
+print(dir_paths[:10])
+for folder in dir_paths:
     text = ""
-    for root,dirname, files in os.walk(dir):
+    print("checking folder:", folder)
+    for root,dirname, files in os.walk(folder):
         files = [file for file in files if "README" not in file]
         files = [file for file in files if "LICENSE" not in file]
         files = [file for file in files if ".py" not in file]
+        print('passed file filtering')
         for file in files:
-            with open(dir+'/'+file, "r") as dtt:
+            read_path = folder+'/'+file
+            print("reading:", read_path)
+            with open(read_path, "r") as dtt:
                 text += dtt.read()
-    with open(dir+"/"+ dir.split('/')[-1]+ "-concat.txt", "a") as concat:
+    concat_path = folder+"/"+ folder.split('/')[-1]+ "-concat.txt"
+    print("concat_path:",concat_path)
+    with open(concat_path, "a") as concat:
+
         concat.write(text)
 
 
