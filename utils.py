@@ -6,6 +6,9 @@ import matplotlib.pyplot as plt
 import zstandard as zstd
 from tqdm.notebook import tqdm
 
+import logging
+
+logging.basicConfig(level=logging.DEBUG,filename='utils.log')
 
 ############################################################################
 # Constants
@@ -149,7 +152,7 @@ def do_doc(language,doc_path) -> tuple:
 
 
 
-def ud_copy(ud_o_path,ud_i_path,lang_dict=lang_dict):   
+def ud_copy(ud_o_path,ud_i_path,lg_dict:dict):   
     if not os.path.exists(ud_o_path):
         os.mkdir(ud_o_path)
 
@@ -160,11 +163,13 @@ def ud_copy(ud_o_path,ud_i_path,lang_dict=lang_dict):
                 n_path = "/".join(path.split('/')[-2:])
 
                 try:
-                    for _, lang in lang_dict.items():
+                    for lang, _ in lg_dict.items():
                         if lang in n_path:
                             folder = os.path.dirname(ud_o_path+n_path)
                             os.makedirs(folder,exist_ok=True)
                             shutil.copy(ud_i_path+n_path, ud_o_path+n_path)
+                            logging.warning("copying from:{}\nto: {}".format(ud_i_path+n_path,
+                            ud_o_path+n_path))
                         else:
                             continue
                 except FileNotFoundError as e:
@@ -178,12 +183,12 @@ def ud_concat(dir_path):
         if root == dir_path:
             print("Skipping:", root)
             continue
-        [file for file in files if "README" or "LICENCE" not in files]
+        files = [file for file in files if ("README" or "LICENCE") not in files]
         concat_path = root +'/' +root.split('/')[-1]+'-concat.txt'
         print("concating:",concat_path)
         with open(concat_path, 'wb') as f:
             for file in files:
                 cur_path = os.path.join(root,file)
-                print(cur_path)
+                #print(cur_path)
                 with open (cur_path,'rb') as ud_text:
                     f.write(ud_text.read())
