@@ -1,4 +1,4 @@
-import io, json, os, sys
+import io, json, os, sys, re, shutil
 import kenlm
 import polars as pl
 import seaborn as sns
@@ -9,7 +9,7 @@ from tqdm.notebook import tqdm
 
 ############################################################################
 # Constants
-with open('oscar_languages', 'r') as oscar_languages:
+with open('/netscratch/fonseca/oscar-pre-processing/oscar_languages', 'r') as oscar_languages:
     lang_dict = {}
     for line in oscar_languages.readlines():
         lg, language = re.split(r"\t", line.rstrip(), maxsplit=1)
@@ -142,3 +142,44 @@ def do_doc(language,doc_path) -> tuple:
             doc_log_score += line_score
 
     return (round(pp(doc_log_score, doc_length)))
+
+
+
+def ud_copy(ud_o_path,ud_i_path):   
+    if not os.path.exists(ud_o_path):
+        os.mkdir(ud_o_path)
+
+    for dirpath, dirname, files in os.walk(ud_i_path):
+        for file in files:
+            if ".txt" in file:
+                path = os.path.join(dirpath,file)
+                n_path = "/".join(path.split('/')[-2:])
+
+                try:
+                    for _, lang in lang_dict.items():
+                        if lang in n_path:
+                            folder = os.path.dirname(ud_o_path+n_path)
+                            os.makedirs(folder,exist_ok=True)
+                            shutil.copy(ud_i_path+n_path, ud_o_path+n_path)
+                        else:
+                            continue
+                except FileNotFoundError as e:
+                    print(path)
+                    print(e)
+            else:
+                continue
+
+def ud_concat(dir_path):
+    for root, dirname, files in os.walk(dir_path):
+        if root == dir_path:
+            print("Skipping:", root)
+            continue
+        [file for file in files if "README" or "LICENCE" not in files]
+        concat_path = root +'/' +root.split('/')[-1]+'-concat.txt'
+        print("concating:",concat_path)
+        with open(concat_path, 'wb') as f:
+            for file in files:
+                cur_path = os.path.join(root,file)
+                print(cur_path)
+                with open (cur_path,'rb') as ud_text:
+                    f.write(ud_text.read())
