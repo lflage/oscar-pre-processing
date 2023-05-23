@@ -15,6 +15,10 @@ with open('/netscratch/fonseca/oscar-pre-processing/oscar_languages', 'r') as os
         lg, language = re.split(r"\t", line.rstrip(), maxsplit=1)
         lang_dict[language] = lg
 
+# lang_dict is a dictionary of the form:
+# {Language: lg} where language is the language name and lg its abbreviation in
+# the oscar_languages file
+
 #lang_dict = dict([('English','en'),('Swedish','sv'), ('Russian','ru'),('French','fr'),
 #        ('Japanese','ja'),('Portuguese','pt'),('German','de'),('Spanish','es')])
 
@@ -145,7 +149,7 @@ def do_doc(language,doc_path) -> tuple:
 
 
 
-def ud_copy(ud_o_path,ud_i_path):   
+def ud_copy(ud_o_path,ud_i_path,lang_dict=lang_dict):   
     if not os.path.exists(ud_o_path):
         os.mkdir(ud_o_path)
 
