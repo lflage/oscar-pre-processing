@@ -158,7 +158,7 @@ def ud_copy(ud_o_path,ud_i_path,lg_dict:dict):
 
     for dirpath, dirname, files in os.walk(ud_i_path):
         for file in files:
-            if ".txt" in file:
+            if re.search("-ud-(?=.+\.txt)",file):
                 path = os.path.join(dirpath,file)
                 n_path = "/".join(path.split('/')[-2:])
 
