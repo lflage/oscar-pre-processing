@@ -9,7 +9,7 @@ from utils import lang_dict
 
 kenlms_path = "/ds/text/oscar/oscar-kenlms/" #+'en'+'.binary'
 
-out_path = "./pps_2/"
+out_path = "./pps/"
 
 
 def pp(log_score:float, length:int):
@@ -63,7 +63,7 @@ if __name__=="__main__":
         os.mkdir(out_path)
 
     # reading paths from origin folder
-    for root, dirnames, files in os.walk("./new_"):
+    for root, dirnames, files in os.walk("./filter_ud"):
         for file in files:
             f_paths.append(os.path.join(root,file))
     # Only get the concatenated files
@@ -74,6 +74,7 @@ if __name__=="__main__":
 "Hungarian", "Latvian", "Lithuanian", "Maltese", "Polish", "Slovak", "Slovenian",
 "Bulgarian", "Irish", "Romanian", "Croatian"]
 
+    # Filter oscar languages to europe_languages
     lg_dict = {k:v for k,v in lang_dict.items() if k in europe_languages}
 
 
@@ -81,7 +82,7 @@ if __name__=="__main__":
     for language, lg in tqdm(lg_dict.items()):
         l_paths = [file for file in f_paths if language in file]
         # Create a dict with doc name and its perplexity score
-        l_dict = {"doc_id":[], "pp_score":[]}
+        l_dict = {"doc_id":[], "pp_score":[],"language":[]}
         for path in l_paths:
             # Get perplexity for each line in doc
             try:
@@ -97,6 +98,7 @@ if __name__=="__main__":
             doc_pp = do_doc(language,path)
             l_dict['doc_id'].append(path)
             l_dict['pp_score'].append(doc_pp)
+            l_dict['language'].append(language)
         doc_out_path = out_path+lg+'_pp_docs.json'
         # Saves perplexity for doc into json
         print("Writing doc pp: {}".format(doc_out_path))
