@@ -9,14 +9,14 @@ from utils import lang_dict
 
 kenlms_path = "/ds/text/oscar/oscar-kenlms/" #+'en'+'.binary'
 
-out_path = "./pps/"
+out_path = "./pps_lines_test/"
 
 
 def pp(log_score:float, length:int):
     return 10.0 ** (-log_score / length)
 
 def do_lines(language,doc_path) -> dict:
-    to_json = {"doc_id":[],"doc_lines":[],"line_pp":[],"line_len":[],"line_score":[]}
+    # to_json = {"doc_id":[],"doc_lines":[],"line_pp":[],"line_len":[],"line_score":[]}
     lang_ab = lang_dict[language]
     model_path = kenlms_path+lang_ab+'.binary'
     model = kenlm.LanguageModel(model_path)
@@ -27,13 +27,10 @@ def do_lines(language,doc_path) -> dict:
             line_len = len(line.split())
             if line_len == 0:
                 continue
-            to_json["doc_id"].append(doc_path)
-            to_json["doc_lines"].append(line)
-            to_json["line_score"].append(line_score)
-            to_json["line_len"].append(line_len)
             pp_score = round(pp(model.score(line), line_len))
-            to_json['line_pp'].append(pp_score)
-    return to_json
+            
+            yield {"doc_id":doc_path,"doc_lines":line,
+                "line_score":pp_score,"language":language}
 
 def do_doc(language,doc_path) -> tuple:
     lang_ab = lang_dict[language]
@@ -85,15 +82,17 @@ if __name__=="__main__":
         l_dict = {"doc_id":[], "pp_score":[],"language":[]}
         for path in l_paths:
             # Get perplexity for each line in doc
-            try:
-                to_lines = do_lines(language,path)
-            except OSError:
-                print("failed to open{}".format(language))
-                continue
             # Save perplexity dict into json
             with open(out_path+lg+'_pp_lines.json', "a") as oj:
-                json.dump(to_lines,oj)
-
+                try:
+                    to_lines = do_lines(language,path)
+                    for line in to_lines:
+                        json.dump(line,oj)
+                        oj.write('\n')
+                except OSError:
+                    print("failed to open{}".format(language))
+                    continue
+                
             # Get perplexity for whole doc
             doc_pp = do_doc(language,path)
             l_dict['doc_id'].append(path)
