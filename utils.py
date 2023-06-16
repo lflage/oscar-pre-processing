@@ -192,3 +192,12 @@ def ud_concat(dir_path):
                 #print(cur_path)
                 with open (cur_path,'rb') as ud_text:
                     f.write(ud_text.read())
+
+def lg_paths(lg, all_paths):
+    # Return the paths associated with the language "lg" given
+    patter = "(?<=\/)" + lg + "(?=_)"
+    cur_lg_paths = []
+    for path in all_paths:
+        if re.search(patter,path):
+            cur_lg_paths.append(path)
+    return cur_lg_paths
