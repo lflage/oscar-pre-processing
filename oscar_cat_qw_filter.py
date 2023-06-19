@@ -1,7 +1,7 @@
 import os, io, pickle, csv
 import msgspec
-import zstandard as zstd
 
+import zstandard as zstd
 import pandas as pd
 
 from tqdm import tqdm
@@ -9,13 +9,7 @@ from utils import lang_dict, lg_paths
 from typing import Set, Union
 
 
-# { "a": { "b" : { "c" :1} }
-# {metadata:{{},'harmful_pp': 4},}
-
 path =  "/ds/text/oscar/oscar-2301/"
-
-# recognizes language abreviation on the file name, oscar pattern
-regex = "(?<=\/)[a-z]{2,3}(?=_)|$"
 
 # 
 europe_languages = set(["Dutch", "French", "German", "Italian", "Danish", "English",
@@ -52,11 +46,10 @@ def is_keep_category(doc:msgspec.Struct, rm_cat=None):
         return True
 
 
+# listing all compressed file paths
 f_paths = []
 for root, dirnames, files in os.walk(path):
     for file in files:
-        # if "part_1.jsonl" in file:
-        #     f_paths.append(os.path.join(root,file))
         if ".jsonl.zst" in file:
             f_paths.append(os.path.join(root,file))
 # print(f_paths)
@@ -100,6 +93,7 @@ for language in europe_languages:
                 try:
                     document = msgspec.json.decode(line, type=Oscar)
                 except:
+                    # If you cannot decode it, don't count it
                     n_docs -= 1
                     continue
 
@@ -145,8 +139,3 @@ for language in europe_languages:
 
 for key, value in kept_dict.items():
     print("For{}: kept{}".format(key,value*100))
-
-with open('./kept_dict.pkl', 'wb') as kd:
-    pickle.dump(kept_dict, kd)
-
-print(no_pp_count)
