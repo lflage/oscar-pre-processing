@@ -1,5 +1,6 @@
 import os, io, pickle, csv
 import msgspec
+import argparse
 
 import zstandard as zstd
 import pandas as pd
@@ -10,14 +11,34 @@ from typing import Set, Union
 
 from pprint import pprint
 
-lg_dict = {v:k for k,v in lang_dict.items()}
+parser = argparse.ArgumentParser(description=
+        """calculate the percentage of documents kept on the Oscar Dataset after
+        applying selected filters. Perplexity threshold, and certain categories
+        are checked. While a doc with any quality warning is removed""")
 
-path =  "/ds/text/oscar/oscar-2301/"
-# pp_dict_path = '/netscratch/fonseca/oscar-pre-processing/ud_pp_dict.pkl'
-pp_dict_path = "/netscratch/fonseca/oscar-pre-processing/results/adult_pp_dict.pkl"
-out_file_name = "cat_qw_adult_pp_filters"
-cat_qw_filter = True
+parser.add_argument('-pp_dict_path', type=str, help=
+        'path to the Oscar dataset' )
+parser.add_argument('--oscar_path', type=str, default="/ds/text/oscar/oscar-2301/",
+        help='Path to oscar dataset main folder ')
+parser.add_argument('--cat_qw_filter', type=bool, default=False,
+        help='Category and quality warning filter selector')
 
+
+args = parser.parse_args()
+
+# Variables receiving argument
+pp_dict_path = args.pp_dict_path
+oscar_path =  args.oscar_path
+cat_qw_filter = args.cat_qw_filter
+
+#file name for dict, used to path handling
+pp_dict_name = pp_dict_path.split('/')[-1].split('.')[0]
+
+#output file name, changes according to the setting selected
+out_file_name = "output_" + pp_dict_name + "_filter_" + str(cat_qw_filter)
+print(out_file_name)
+
+pp_dict_name = pp_dict_path.split('/')[-1]
 # 
 europe_languages = set(["Dutch", "French", "German", "Italian", "Danish", "English",
 "Greek", "Portuguese", "Spanish", "Finnish", "Swedish", "Czech", "Estonian",
@@ -60,7 +81,7 @@ def is_keep_cat_qw(doc:msgspec.Struct, rm_cat=None):
 
 
 f_paths = []
-for root, dirnames, files in os.walk(path):
+for root, dirnames, files in os.walk(oscar_path):
     for file in files:
         if ".jsonl.zst" in file:
             f_paths.append(os.path.join(root,file))
@@ -82,9 +103,9 @@ pprint(pp_dict)
 
 
 # check which languages have been already been read:
-df = pd.read_csv(out_path)
-read = set(df.language)
-print(read)
+# df = pd.read_csv(out_path)
+# read = set(df.language)
+# print(read)
 
 kept_dict = {}
 for language in europe_languages:
@@ -94,8 +115,8 @@ for language in europe_languages:
         continue
         
     # check if result already exists in the csv
-    if language in read:
-        continue
+    # if language in read:
+    #     continue
     above_threshold = 0
     n_docs = 0
     no_pp_count = 0
@@ -169,7 +190,7 @@ for language in europe_languages:
     with open(out_path, 'a', newline='') as file:
         writer = csv.writer(file)
         # ["language","pp_threshold","pp_marker","cat_qw", "percentage_kept"]
-        writer.writerow([language,pp_dict[language],'adult',True, percent_kept])
+        writer.writerow([language,pp_dict[language],pp_dict_name,cat_qw_filter, percent_kept])
 
 
     kept_dict[language] = percent_kept
