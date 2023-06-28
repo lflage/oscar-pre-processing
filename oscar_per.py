@@ -111,7 +111,12 @@ kept_dict = {}
 for language in europe_languages:
     try:
         print("Perplexity threshold for {} is {}".format(language,pp_dict[language]))
+        assert type(pp_dict[language]) == float
+    except AssertionError:
+        print("{} has no pp threshold set\n".format(language))
+        continue
     except KeyError:
+        print("{} has no pp threshold set\n".format(language))
         continue
         
     # check if result already exists in the csv
