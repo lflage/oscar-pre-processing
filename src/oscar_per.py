@@ -6,7 +6,7 @@ import zstandard as zstd
 import pandas as pd
 
 from tqdm import tqdm
-from utils import lang_dict, lg_paths
+from utils.utils import lang_dict, lg_paths
 from typing import Set, Union
 
 from pprint import pprint
@@ -109,6 +109,7 @@ pprint(pp_dict)
 
 kept_dict = {}
 for language in europe_languages:
+    assert type(pp_dict[language]) == float
     try:
         print("Perplexity threshold for {} is {}".format(language,pp_dict[language]))
         assert type(pp_dict[language]) == float

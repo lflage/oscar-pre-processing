@@ -12,7 +12,7 @@ logging.basicConfig(level=logging.DEBUG,filename='utils.log')
 
 ############################################################################
 # Constants
-with open('/netscratch/fonseca/oscar-pre-processing/oscar_languages', 'r') as oscar_languages:
+with open(os.path.abspath("/oscar_languages"), 'r') as oscar_languages:
     lang_dict = {}
     for line in oscar_languages.readlines():
         lg, language = re.split(r"\t", line.rstrip(), maxsplit=1)
@@ -22,12 +22,9 @@ with open('/netscratch/fonseca/oscar-pre-processing/oscar_languages', 'r') as os
 # {Language: lg} where language is the language name and lg its abbreviation in
 # the oscar_languages file
 
-#lang_dict = dict([('English','en'),('Swedish','sv'), ('Russian','ru'),('French','fr'),
-#        ('Japanese','ja'),('Portuguese','pt'),('German','de'),('Spanish','es')])
+
 
 kenlms_path = "/ds/text/oscar/oscar-kenlms/" #+'en'+'.binary'
-
-out_path = "./pps/"
 
 ## For dealing with jsonl files, filtering and plotting
 # Reading functions
