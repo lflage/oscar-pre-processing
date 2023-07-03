@@ -6,7 +6,7 @@ import zstandard as zstd
 import pandas as pd
 
 from tqdm import tqdm
-from utils.utils import lang_dict, lg_paths
+from utils.Utils import lang_dict, lg_paths
 from typing import Set, Union
 
 from pprint import pprint
@@ -109,15 +109,13 @@ pprint(pp_dict)
 
 kept_dict = {}
 for language in europe_languages:
-    assert type(pp_dict[language]) == float
     try:
         print("Perplexity threshold for {} is {}".format(language,pp_dict[language]))
-        assert type(pp_dict[language]) == float
-    except AssertionError:
-        print("{} has no pp threshold set\n".format(language))
-        continue
-    except KeyError:
-        print("{} has no pp threshold set\n".format(language))
+        # Assert checked for nan values
+        assert pp_dict[language] == pp_dict[language]
+    except (AssertionError,KeyError) as e:
+        print("Could not find score for {}\nscore has type{}".format(language,
+         pp_dict[language]))
         continue
         
     # check if result already exists in the csv
