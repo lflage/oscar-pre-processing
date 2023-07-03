@@ -8,11 +8,11 @@ from tqdm.notebook import tqdm
 
 import logging
 
-logging.basicConfig(level=logging.DEBUG,filename='utils.log')
+logging.basicConfig(level=logging.DEBUG,filename=os.path.abspath('./')+'utils.log')
 
 ############################################################################
 # Constants
-with open(os.path.abspath("/oscar_languages"), 'r') as oscar_languages:
+with open("/netscratch/fonseca/oscar-pre-processing/src/utils/oscar_languages", 'r') as oscar_languages:
     lang_dict = {}
     for line in oscar_languages.readlines():
         lg, language = re.split(r"\t", line.rstrip(), maxsplit=1)
