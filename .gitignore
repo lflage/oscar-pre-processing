@@ -6,3 +6,7 @@ ud
 ud_tst
 pps
 drafts*
+logs
+data
+__pycache__
+./**/draft
