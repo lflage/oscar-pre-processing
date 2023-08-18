@@ -16,12 +16,16 @@ parser = argparse.ArgumentParser(description=
         applying selected filters. Perplexity threshold, and certain categories
         are checked. While a doc with any quality warning is removed""")
 
-parser.add_argument('-pp_dict_path', type=str, help=
+parser.add_argument('-p','--pp_dict_path', type=str, help=
         'path to the Oscar dataset' )
+parser.add_argument('-o','--output', type=str,default = './results/percent_kept', help=
+        'path to the Oscar dataset' )
+parser.add_argument('-c','--cat_qw_filter', action='store_true',
+        help='Category and quality warning filter selector')
+parser.add_argument('-pf', '--pp_filter', action='store_true',
+        help='flag for perplexity filter') 
 parser.add_argument('--oscar_path', type=str, default="/ds/text/oscar/oscar-2301/",
         help='Path to oscar dataset main folder ')
-parser.add_argument('--cat_qw_filter', type=bool, default=False,
-        help='Category and quality warning filter selector')
 
 
 args = parser.parse_args()
@@ -30,15 +34,20 @@ args = parser.parse_args()
 pp_dict_path = args.pp_dict_path
 oscar_path =  args.oscar_path
 cat_qw_filter = args.cat_qw_filter
+pp_filter = args.pf
 
-#file name for dict, used to path handling
-pp_dict_name = pp_dict_path.split('/')[-1].split('.')[0]
+if pp_filter == True:
+    #file name for dict, used to path handling
+    pp_dict_name = os.path.splitext(os.path.basename(pp_dict_path))[0]
+else:
+    pp_dict_name = ""
+    
+print(pp_dict_name)
 
 #output file name, changes according to the setting selected
 out_file_name = "output_" + pp_dict_name + "_filter_" + str(cat_qw_filter)
 print(out_file_name)
 
-pp_dict_name = pp_dict_path.split('/')[-1]
 # 
 europe_languages = set(["Dutch", "French", "German", "Italian", "Danish", "English",
 "Greek", "Portuguese", "Spanish", "Finnish", "Swedish", "Czech", "Estonian",
@@ -156,13 +165,13 @@ for language in europe_languages:
                 #     if n_qw %1000000 == 0:
                 #         print(n_qw)
                 #     continue
-
-                if document.metadata.harmful_pp < pp_dict[language]:
-                    keep = False
-                    file_keeps.append(keep)
-                    continue
-                else:
-                    keep = True
+                if pp_filter:
+                    if document.metadata.harmful_pp < pp_dict[language]:
+                        keep = False
+                        file_keeps.append(keep)
+                        continue
+                    else:
+                        keep = True
                 
                 # if the document is above the perplexity threshold, check its 
                 # categories and quality warnings
