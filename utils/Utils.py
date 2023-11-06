@@ -1,5 +1,6 @@
 import io, json, os, sys, re, shutil
 import kenlm
+import msgspec
 import polars as pl
 import seaborn as sns
 import matplotlib.pyplot as plt
@@ -83,6 +84,29 @@ def is_adult(tags):
     except TypeError:
         return True
 
+
+def imp_cat_qw(doc:msgspec.Struct, rm_cat=None):
+    """Receives a msgspec Struct and check its contents for
+    quality warnings and categories to be filtered out
+    returns True if the document must be kept, otherwise, False
+    """
+    # define a default set of categores to be removed
+    rm_cat = {'agressif','adult', 'cryptojacking', 'dangerous_material',
+                'phishing'} if rm_cat is None else rm_cat
+    if doc.metadata.quality_warnings:
+        return False
+    # If no category is set, then we keep it
+    if not doc.metadata.categories:
+        return True
+    # If there is an intersection between both sets, there is at least one
+    # category that must be removed, therefore False is returned so we don't keep it
+    if rm_cat.intersection(doc.metadata.categories):
+        return False
+    # If no intersection is found, return True and we keep the doc
+    else:
+        return True
+
+
 # Plot functions
 
 def std_filter(dataframe,n_std):
@@ -100,6 +124,23 @@ def interval_filter(dataframe, interval:list) -> pl.dataframe:
 def str_describe(dataframe,column):
     return '\n'.join([str(row[0]) + '    ' + str(row[1]) for row in dataframe[column].describe().iter_rows()])
 
+
+def pp_hist_plot(df,filters):
+    """Plots a histogram of the percentage of documents kept 
+    after applying the selected filters"""
+    plt.figure(figsize=(48,18))
+    filt = list(set(df['pp_marker']))[0]
+    cat_qw = list(set(df['cat_qw']))[0]
+    x = sns.barplot(data = df, x = df['language'],y = df['percentage_kept'],
+        hue='filter')
+    # x.ylim(0,1)
+
+    x.legend(fontsize='22', labels=filters)
+    x.set_title("Percentage of Documents Kept", fontsize=30)
+    x.set(xlabel='Language',
+            ylabel='Percentage Kept',
+            ylim=(0,1))
+    plt.savefig('./histogram1',dpi='figure',format='svg')
 
 ################################################################################
 
